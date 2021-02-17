@@ -2,7 +2,7 @@
 
 ---++++ System Requirements
 
-The requirements for snmpTastic are minimal; most any stock UNIX host should be acceptable. It was developed and deployed using vi, OpenBSD3.9, Perl 5.8.6, and Google.
+The requirements for snmptastic are minimal; most any stock UNIX host should be acceptable. It was developed and deployed using vi, OpenBSD3.9, Perl 5.8.6, and Google.
 
 *Requirements*
 
@@ -13,7 +13,7 @@ The requirements for snmpTastic are minimal; most any stock UNIX host should be 
          * UNIX =diff= or equivalent tool be available. The exact tool can be specified in the configuration file; be default, the daemon calls ='diff -wu'= to generate the data for differential emails. This is a stock tool and exists on most UNIX implementations.
 
    * Perl 5.8 or later
-      * The following Perl Modules must be installed on the UNIX host which snmptastic is to be run on. Note these are all published and freely available CPAN modules.
+      * The following Perl Modules must be installed on the UNIX host which snmptastic is to be run on. Note these are all published and freely available CPAN modules and can be installed with "cpan -i" on most modern UNIX distributions.
          * Net::SNMP + Dependancies
          * Cisco::CopyConfig + Dependancies
          * XML::Simple + Dependancies
