@@ -5,7 +5,7 @@
 # SNMP & SCP Based Network Monitor Tool
 # Originally written in September, 2006 by Thor Newman
 #
-# VERSION 1.8
+# VERSION 1.9
 #
 ###############################################################################
 $| = 1;
@@ -13,7 +13,7 @@ $| = 1;
 $SIG{'TERM'} = \&catch_term;
 
 use POSIX qw(setsid);
-#use strict;
+use strict;
 use File::Copy;
 use Net::SNMP;
 use Net::TFTP;
@@ -52,15 +52,20 @@ logEvent("*** Started $0");
 print Dumper($config) if $VERBOSE;
 logEvent("Tracking Directory set to $tracking");
 logEvent("Differential Command set to $config->{'diff_command'}");
-logEvent("Configuration changes will be sent to $config->{'notification'}->{'notify-configuration-changes'}")
-        if  $config->{'notification'}->{'notify-configuration-changes'};
-logEvent("Configuration changes will be sent to $config->{'notification'}->{'notify-configuration-files'}")
-        if  $config->{'notification'}->{'notify-configuration-files'};
+logEvent("Configuration changes will be sent to $config->{'notification'}->{'notify-configuration-changes'}") if  $config->{'notification'}->{'notify-configuration-changes'};
+logEvent("Using Mail Template $config->{'notification'}->{'notify-template'}") if ( -e  $config->{'notification'}->{'notify-template'} );
 logEvent("Configuration changes will be logged to $diffLog") if ($config->{'log_differential'} and $diffLog);
 logEvent("Polling Frequency set to $config->{'iteration_frequency'} seconds");
 logEvent("There are no Devices defined to monitor") if $numDevices < 1;
 logEvent("Insufficient Devices Present -- Minimum of 2 Devices Required -- Halting Execution") if $numDevices < 1;
 exit 1 if $numDevices < 1;
+
+unless (-e  $config->{'notification'}->{'notify-template'}) {
+	print "*** NO MAIL TEMPLATE FOUND -- PLEASE CHECK YOUR CONFIGURATION -- DAEMON HALTED ***\n"; 
+	exit 1;
+}
+
+
 logDevices();
 
 ##
@@ -569,12 +574,29 @@ sub sendDiffNotification() {
         my $target = $_[1];
         my $diff = $_[2];
 
+	## Mail template file
+	my $template = $config->{'notification'}->{'notify-template'};
+
         my $recipients = $config->{'notification'}->{'notify-configuration-changes'};
 	my $from = $config->{'notification'}->{'notify-from-address'};
         my $mailer = "/usr/sbin/sendmail -t";
 	chomp($recipients);
 	$recipients =~ s/\n//g;
 
+
+        ## Hashtable of variable substitions
+        my %replace = (
+                from => "$from",
+                recipients => "$recipients",
+                name => "$name",
+                target => "$target",
+                diff => "$diff"
+        );
+
+
+	##
+	## Adds device-specific recipients if configured
+	##
 	if ( defined( $config->{'device'}->{$name}->{'notify'} ) ) {
 		my $addNoticeTo = $config->{'device'}->{$name}->{'notify'};
 
@@ -583,31 +605,30 @@ sub sendDiffNotification() {
 		logEvent("Added $addNoticeTo To Global Notification List") if $VERBOSE;
 	}
 
+	##
+	## Reads in mail template and safely replaces placeholder text
+	##
+	open ( my $fh, '<', $template );
+	my @msg = <$fh>;
+	close $fh;
 
-        open MAIL, "|$mailer" or logEvent("$!\n");  
+	foreach my $e (@msg) {
+        	for my $key ( keys %replace ) {
+                	$e =~ s/\$$key/$replace{$key}/g;
+        	}
 
-        print MAIL <<EOF;
-From: $from
-To: $recipients
-Subject: SNMPTASTIC: Configuration Change for $name
+	}
 
-This is an automated notice from snmpTastic
+	##
+	## Transmits message
+	##
+        open ( my $mail, "|-", "$mailer") or logEvent("$!\n");  
+        print $mail @msg;
+	close $mail;
 
-The monitored device "$name" at address "$target" has been reconfigured.
 
-The configuration change follows:
-
-BEGIN CONFIGURATION CHANGE --------------------------------------------
-
-$diff
-
-END CONFIGURATION CHANGE   --------------------------------------------
-EOF
-
-close MAIL;
-
-logEvent("Device $name Differential Notice sent to $recipients");
-logDiff($name,$diff) if $LOG_DIFFERENTIAL;
+	logEvent("Device $name Differential Notice sent to $recipients");
+	logDiff($name,$diff) if $LOG_DIFFERENTIAL;
 }
 
 ##
@@ -737,7 +758,7 @@ sub getCiscoConfiguration {
 
         } else {
                 my $err = $config->error();
-                logEvent("Encountered Error: $err");
+                logEvent("getCiscoConfiguration Error: $err");
 
                 return 0;
         }
@@ -770,7 +791,7 @@ sub enableHpTFTPServer() {
         );
 
         if ( !defined($session) ) {
-                logEvent("Error Creating SNMP Session: $error");
+                logEvent("enableHpTFTPServer Error Creating SNMP Session: $error");
                 return 0;
         }
 
@@ -817,7 +838,7 @@ sub disableHpTFTPServer() {
         );
 
         if ( !defined($session) ) {
-                logEvent("Error Creating SNMP Session: $error");
+                logEvent("disableHpTFTPServer Error Creating SNMP Session: $error");
                 return 0;
         }
 

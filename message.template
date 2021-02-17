@@ -1,0 +1,16 @@
+From: $from
+To: $recipients
+Subject: SNMPTASTIC: Configuration Change for $name
+
+This is an automated notice from snmpTastic
+
+The monitored device "$name" at address "$target" has been reconfigured.
+
+The configuration change follows:
+
+BEGIN CONFIGURATION CHANGE --------------------------------------------
+
+$diff
+
+END CONFIGURATION CHANGE   --------------------------------------------
+
