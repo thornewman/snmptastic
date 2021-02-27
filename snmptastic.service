@@ -1,0 +1,14 @@
+[Unit]
+Description=SNMP based network monitoring service
+
+[Service]
+Type=forking
+UMask=077
+ExecStart=/opt/snmptastic/snmptastic.pl /opt/snmptastic/snmptastic.conf
+WorkingDirectory=/opt/snmptastic
+Restart=on-failure
+RestartSec=55s
+
+
+[Install]
+WantedBy=multi-user.target

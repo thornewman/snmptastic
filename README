@@ -1,0 +1,91 @@
+SNMPTASTIC 1.8
+
+The requirements for snmptastic are minimal; most any stock UNIX host should be acceptable. It was originally developed and deployed using vi, OpenBSD3.9, Perl 5.8.6, and Google.
+
+REQUIREMENTS
+
+A UNIX host which has:
+* A locally available TFTP server and directory (or a remote TFTP server with it's directory mounted locally by NFS)
+  This TFTP server must be configured to 'create' files rather than requiring empty files to be available. 
+  This is typically done in /etc/inetd.conf as follows:
+  tftp            dgram   udp     wait    root    /usr/libexec/tftpd      tftpd -cs /tftpboot
+
+  IT IS VERY IMPORTANT THIS BE DONE OR CONFIGURATION RETRIEVAL BY TFTP WILL FAIL
+
+* UNIX =diff= or equivalent tool be available. The exact tool, path, and parameters can be specified in the configuration file. 
+  By default, the daemon calls ='diff -wu'= to generate the data for differential emails. 
+  This is a stock tool and exists on most UNIX implementations.
+
+* Perl 5.8 or later
+  The following Perl Modules must be installed on the UNIX host which snmptastic is to be run on. Note these are all published and freely available CPAN modules.
+         * Net::SNMP + Dependancies
+         * Cisco::CopyConfig + Dependancies
+         * XML::Simple + Dependancies
+         * Net::TFTP
+         * File::Copy (May be present in default Perl installation)
+         * Data::Dumper (May be present in default Perl installation)
+         
+* Relevant Cisco, Foundry, HP SNMP MIBS installed on the host server. Although these MIBS can be retrieved from the Internet, as a convenience a tarball of needed MIBS accompanies the snmpTastic distribution. This file should be extracted into the host server MIBS repository, Usually this location is =/usr/local/share/snmp/mibs=
+
+* The daemon uses TFTP to deliver Cisco configurations via SNMP; consequently the TFTP directory which configurations are delivered to must be locally available to snmptastic.
+  The directory path is configured in snmptastic.conf and must either be a local file system, or mounted locally via NFS.
+
+---++++ Included Files
+
+snmptastic.pl		The executable. Will self daemonize. Terminate by sending it a kill signal. 
+snmptastic.conf		Stock configuration file. It is self documented.
+mibs.tar.gz		An archive of SNMP MIBS used by the script. Usually isn't needed to be installed.
+mail.template		A template file used to create automatic email notifications, can be modified as desired
+snmptastic.service	A systemd configuration that can be used to register snmptastic. Assumes installation to /opt/snmptastic, modify appropriately	
+tracking/		An empty tracking directory which is the default for storing configurations and state files. This can be any directory, configured in snmptastic.conf
+README			This file
+		
+
+---++++ Installation
+
+This installation walkthrough will suppose that the administrator is installing snmpTastic to: /opt/snmptastic
+
+* Ensure the TFTP server on the destination UNIX host is configured as detailed in the Requirements section.
+* Extract the TAR file somewhere logical on the UNIX host:
+
+  tar zxvf snmpTastic_1.8.tar.gz ; mv snmptastic/ /opt
+   
+* Configure snmptastic.conf appropriately for your network. The sample file is well documented, contains all needed sections and device templates
+  It is not necessary for the configuration file to be in the same directory as the Perl daemon as the configuration is passed as a command line parameter during launch. 
+  One may safely move  snmptastic.conf to /etc if so desired for example
+
+* It is suggested the default tracking/ directory be used; this extracts into snmptastic/tracking when the tarfile is unzipped. 
+  Any directory may be used however, so long as it is properly referenced in the configuration file.
+  It is strongly advised the directory have strong permissions (0600) to protect the contents
+
+* Optional: Add to systems
+  Copy the snmptastic.service file to /usr/lib/systemd/system and register with systemctl daemon-reload
+  Make sure the path matches your actual installation directory -- the default is /opt/snmptastic
+
+---++++ Launching
+
+
+* Regular Method 
+  Run ./snmptastic.pl from the terminal passing it the explicit path to the configuration file as the only command-line parameter.
+  
+  Example: ./snmptastic.pl snmptastic.conf
+  Example: /opt/snmptastic.pl /opt/snmptastic/snmptastic.conf
+
+  The program will launch and self-daemonize, logging to the log file specified in snmptastic.conf (Default is /var/log/snmptastic.log)
+
+* SystemD Method
+  Assuming you have properly installed it to systemd using the included snmptastic.service file, control the daemon with systemctl
+
+  systemctl status snmptastic
+  systemctl start snmptastic
+  systemctl stop snmptastic
+  Systemctl restart snmptastic
+
+ 
+
+---++++ About snmpTastic
+
+   * SnmpTastic was originally written in one day by Thor Newman during the fall of 2006. It was an attempt to provide a simple, secure, and reliable tool for Network Configuration Tracking. It was written to deliver an alternative to RANCID and was intended from the beginning to use SNMP and so avoid any simulated Terminal Sessions via Expect. Support for SSH to track UNIX host configuration changes was added later as the tool proved useful in production environments. 
+
+   * The Original Developer, Thor Newman, conceived and developed this application to version 1.8. 
+
