@@ -1,4 +1,4 @@
-# SNMPTASTIC 1.8
+# SNMPTASTIC 1.9
 
 
 INTRODUCTION
@@ -24,12 +24,15 @@ acceptable. It was originally developed and deployed using vi, OpenBSD3.9, Perl
 This is an "old school" UNIX style service, written in perl and requiring UNIX 
 Supporting services to run. 
 
+
 SECURITY BEST PRACTICES
 
-Run SNMPTASTIC on a secure internal host with limited access only to appropriate
+
+Run snmptastic on a secure internal host with limited access only to appropriate
 Operations staff.
 
 The default configuration, if followed, is reasonably secure:
+
 *  The tracking directory where configurations are stored only allows access by the 
    owning user
 *  The script umask 066 as it daemonizes so configuration and state files have
@@ -44,14 +47,17 @@ The default configuration, if followed, is reasonably secure:
    Access lists so the RW configuration is only usable from the host that
    snmptastic runs on.
 
+
 REQUIREMENTS
+
 
 A UNIX host which has:
 * A locally available TFTP server and directory (or a remote TFTP server with its 
   directory mounted locally by NFS)
   
-This TFTP server must be configured to 'create' files rather than requiring empty 
-files to be available. 
+  This TFTP server must be configured to 'create' files rather than requiring empty 
+  files to be available. 
+
   This is typically done in /etc/inetd.conf as follows:
   tftp dgram udp wait root /usr/libexec/tftpd tftpd -cs /tftpboot
 
@@ -86,7 +92,9 @@ files to be available.
   The directory path is configured in snmptastic.conf and must either be a local 
   file system, or mounted locally via NFS.
 
----++++ Included Files
+
+PACKAGE INSTALLATION FILES
+
 The installation tarball contains these files extracted into snmptastic/
 
 snmptastic.pl		The executable. Will self daemonize. Terminate by sending 
@@ -111,13 +119,16 @@ tracking/		An empty tracking directory which is the default for
 README			This file
 		
 
----++++ Installation
+INSTALLATION INSTRUCTIONS
 
 This installation walkthrough will suppose that the administrator is installing 
 snmpTastic to: /opt/snmptastic
 
 * Ensure the TFTP server on the destination UNIX host is configured as detailed in 
   the Requirements section.
+
+* Configure appropriate SNMP RW community string on Cisco, HP and Foundry Devices.
+  Follow instructions in snmptastic.conf for device specific configurations. 
 
 * Extract the TAR file somewhere logical on the UNIX host:
 
@@ -130,7 +141,7 @@ snmpTastic to: /opt/snmptastic
   Perl daemon as the configuration is passed as a command line parameter during 
   launch. 
   
-  One may safely move  snmptastic.conf to /etc if so desired for example
+  One may safely move  snmptastic.conf to /etc if desired for example
 
 * It is suggested the default tracking/ directory be used; this extracts into 
   snmptastic/tracking when the tarfile is unzipped. 
@@ -149,7 +160,9 @@ snmpTastic to: /opt/snmptastic
   Make sure the path matches your actual installation directory -- the default is 
   /opt/snmptastic
 
----++++ Launching
+
+STARTING AND STOPPING
+
 
 
 * Regular Method 
@@ -163,6 +176,8 @@ snmpTastic to: /opt/snmptastic
   The program will launch and self-daemonize, logging to the log file specified in 
   snmptastic.conf (Default is /var/log/snmptastic.log)
 
+  The daemon will cleanly shutdown if given a normal TERM kill signal
+
 * SystemD Method
 
   Assuming you have properly installed it to systemd using the included 
@@ -175,13 +190,23 @@ snmpTastic to: /opt/snmptastic
 
  
 
----++++ About snmptastic
+ABOUT SNMPTASTIC
+
 
 Originally written in one day by Thor Newman during the fall of 2006. It was an 
 attempt to provide a simple, secure, and reliable tool for Network Configuration 
 Tracking using SNMP and was first created specifically for Cisco devices. 
 
 Support for Foundry, HP, and then generic SCP to track UNIX or any other device
-Which allows SSH-key based file retrieval by SCP. n environments. 
+Which allows SSH-key based file retrieval by SCP.
+
+Questions/Comments/Feedback Welcome to thornewman@icloud.com.
 
 Current Version is 1.9.
+
+LICENSE
+
+
+snmptastic is copyright (c) Thor Newman. It is freeware and may be freely used and 
+distributed. No charge may be levied for it licensing, distribution, or use and it 
+remains the intellectual property of Thor Newman,
