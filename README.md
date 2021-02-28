@@ -1,7 +1,8 @@
-# SNMPTASTIC 1.9
+= SNMPTASTIC 1.9
 
-
+************************************************************************************
 INTRODUCTION
+************************************************************************************
 
 snmptastic is a production environment systems administration daemon service for 
 tracking network device configurations and logging and reporting configuration 
@@ -25,8 +26,9 @@ This is an "old school" UNIX style service, written in perl and requiring UNIX
 Supporting services to run. 
 
 
+************************************************************************************
 SECURITY BEST PRACTICES
-
+************************************************************************************
 
 Run snmptastic on a secure internal host with limited access only to appropriate
 Operations staff.
@@ -35,8 +37,10 @@ The default configuration, if followed, is reasonably secure:
 
 *  The tracking directory where configurations are stored only allows access by the 
    owning user
-*  The script umask 066 as it daemonizes so configuration and state files have
+
+*  The script sets umask 066 as it daemonizes so configuration and state files have
    safe permissions
+
 *  Network configurations themselves generally do not contain extremely sensitive
    Information like plain text passwords
 
@@ -45,13 +49,18 @@ The default configuration, if followed, is reasonably secure:
 
    SNMP configuration on the monitored network devices should be configured with
    Access lists so the RW configuration is only usable from the host that
-   snmptastic runs on.
+   snmptastic runs on. 
+
+   The SNMP community string(s) used for snmptastic should be unique and not used 
+   elsewhere.
 
 
+************************************************************************************
 REQUIREMENTS
-
+************************************************************************************
 
 A UNIX host which has:
+
 * A locally available TFTP server and directory (or a remote TFTP server with its 
   directory mounted locally by NFS)
   
@@ -65,7 +74,7 @@ A UNIX host which has:
 
 * UNIX "diff" or equivalent tool be available. 
   The exact tool, path, and parameters can be specified in the configuration file. 
-  By default, the daemon calls ='diff -wu'= to generate the data for differential 
+  By default, the daemon calls "diff -wu" to generate the data for differential 
   emails. 
   
   This is a stock tool and exists on most UNIX implementations.
@@ -92,8 +101,14 @@ A UNIX host which has:
   The directory path is configured in snmptastic.conf and must either be a local 
   file system, or mounted locally via NFS.
 
+  The TFTP server must be configured with "-c" to allow new files to be created as
+  files are transferred via TFTP.
 
+
+
+************************************************************************************
 PACKAGE INSTALLATION FILES
+************************************************************************************
 
 The installation tarball contains these files extracted into snmptastic/
 
@@ -119,7 +134,9 @@ tracking/		An empty tracking directory which is the default for
 README			This file
 		
 
+************************************************************************************
 INSTALLATION INSTRUCTIONS
+************************************************************************************
 
 This installation walkthrough will suppose that the administrator is installing 
 snmpTastic to: /opt/snmptastic
@@ -132,7 +149,7 @@ snmpTastic to: /opt/snmptastic
 
 * Extract the TAR file somewhere logical on the UNIX host:
 
-  tar zxvf snmpTastic_1.8.tar.gz ; mv snmptastic/ /opt
+  tar zxvf snmptastic_1.9.tar.gz ; mv snmptastic/ /opt
    
 * Configure snmptastic.conf appropriately for your network. The sample file is well 
   documented, contains all needed sections and device templates
@@ -152,7 +169,7 @@ snmpTastic to: /opt/snmptastic
   It is strongly advised the directory have strong permissions (0600) to protect the 
   contents
 
-* Optional: Add to systems
+* Optional: Add to systemd
   Copy the snmptastic.service file to /usr/lib/systemd/system and register with 
   
   systemctl daemon-reload
@@ -161,9 +178,10 @@ snmpTastic to: /opt/snmptastic
   /opt/snmptastic
 
 
+
+************************************************************************************
 STARTING AND STOPPING
-
-
+************************************************************************************
 
 * Regular Method 
 
@@ -189,9 +207,9 @@ STARTING AND STOPPING
   Systemctl restart snmptastic
 
  
-
+************************************************************************************
 ABOUT SNMPTASTIC
-
+************************************************************************************
 
 Originally written in one day by Thor Newman during the fall of 2006. It was an 
 attempt to provide a simple, secure, and reliable tool for Network Configuration 
@@ -204,9 +222,10 @@ Questions/Comments/Feedback Welcome to thornewman@icloud.com.
 
 Current Version is 1.9.
 
+************************************************************************************
 LICENSE
-
+************************************************************************************
 
 snmptastic is copyright (c) Thor Newman. It is freeware and may be freely used and 
 distributed. No charge may be levied for it licensing, distribution, or use and it 
-remains the intellectual property of Thor Newman,
+remains the intellectual property of Thor Newman.
