@@ -173,7 +173,7 @@ sub iterateDevices() {
                 my $name = $key;
                 my $target = $config->{'device'}->{$key}->{'address'};
                 my $community = $config->{'device'}->{$key}->{'community'};
-                my $fname = $target;
+                my $fname = $key;
                 $fname .= "." . $timestamp;
 
                 if ( $config->{'device'}->{$key}->{'type'} =~ /cisco/i ) {
