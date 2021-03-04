@@ -4,7 +4,7 @@ SNMPTASTIC 1.9
 INTRODUCTION
 ************************************************************************************
 
-snmptastic is a production environment systems administration daemon service for 
+snmptastic is a production environment systems administration service for 
 tracking network device configurations and logging and reporting configuration 
 changes.
 
@@ -16,7 +16,8 @@ It provides:
 * A safe configuration history for devices it monitors
 * Notifications whenever configuration changes occur
 
-It uses SNMP as well as standard UNIX tools such as "diff", "sendmail", and "scp" to achieve this 
+It uses SNMP as well as standard UNIX tools such as "diff", "sendmail", and "scp" to 
+achieve this 
 
 The requirements for snmptastic are minimal; most any stock UNIX host should be 
 acceptable. It was originally developed and deployed using vi, OpenBSD3.9, Perl
@@ -31,7 +32,7 @@ SECURITY BEST PRACTICES
 ************************************************************************************
 
 Run snmptastic on a secure internal host with limited access only to appropriate
-Operations staff.
+administrator.
 
 The default configuration, if followed, is reasonably secure:
 
