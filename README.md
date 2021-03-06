@@ -205,7 +205,7 @@ STARTING AND STOPPING
   systemctl status snmptastic
   systemctl start snmptastic
   systemctl stop snmptastic
-  Systemctl restart snmptastic
+  systemctl restart snmptastic
 
  
 ************************************************************************************
