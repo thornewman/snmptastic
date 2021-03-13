@@ -63,10 +63,6 @@ logEvent("There are no Devices defined to monitor") if $numDevices < 1;
 logEvent("Insufficient Devices Present -- Minimum of 2 Devices Required -- Halting Execution") if $numDevices < 1;
 exit 1 if $numDevices < 1;
 
-unless (-e  $config->{'notification'}->{'notify-template'}) {
-    print "*** NO MAIL TEMPLATE FOUND -- PLEASE CHECK YOUR CONFIGURATION -- DAEMON HALTED ***\n";
-    exit 1;
-}
 
 
 logDevices();
@@ -191,7 +187,7 @@ sub iterateDevices() {
     foreach my $key ( keys %{$config->{'device'}} ) {
         
         
-        #logEvent("Processing Device $key") if $config->{'verbose_logging'};
+        #logEvent("Processing Device $key") if $config->{'logging_verbose'};
         my $timestamp = time();
         my $name = $key;
         my $target = $config->{'device'}->{$key}->{'address'};
@@ -759,6 +755,9 @@ sub createStateFile() {
     
 }
 
+##
+## Load XML configuration file
+##
 sub loadXMLConfig() {
     $config = XMLin( $configFile,  ) or die "$!";
     print "Parsed Configuration File $configFile\n";
@@ -768,7 +767,46 @@ sub loadXMLConfig() {
     $tftp = $config->{'tftp'}->{'address'};
     chomp($config->{'notification'}->{'notify-configuration-changes'});
     $config->{'notification'}->{'notify-configuration-changes'} =~ s/\n//g;
+
+    verifyConfiguration();
 }
+
+
+##
+## Sanity Check Configuration
+##
+sub verifyConfiguration() {
+    my $configErr = "ERROR -- ";
+    my $errCount = 0;
+
+    if ( $config->{logging_verbose} and !$config->{'logging'} ) {
+        print "Disabling Verbose Logging because regular logging is disabled in $configFile\n";
+        $config->{'logging'} = 1;    
+    }
+
+    if ( $config->{'logging_enabled'} and !$config->{'logging'} ) {
+	print "$configErr Logging Enabled but no logfile specified in $configFile\n"; 
+        $errCount++;
+    }
+
+    unless ( $config->{'notification'}->{'notify-template'} ) {
+        print "$configErr No Mail Template set in $configFile";
+    }
+    
+    unless (-e  $config->{'notification'}->{'notify-template'}) {
+        print qq($configErr Configured Mail Template "$config->{'notification'}->{'notify-template'}" not found\n);
+        $errCount++;
+    }   
+
+    unless ( -e $tracking ) {
+        print qq($configErr Configured Tracking Directory "$tracking" not found\n); 
+        $errCount++;
+    }
+
+   print "Please fix $errCount Errors in Configuration File -- Daemon Halted\n\n" if $errCount > 0;
+   exit 1 if $errCount > 0;
+}
+
 
 ##
 ## Subroutine uses SNMP to retrieve running-configuration
