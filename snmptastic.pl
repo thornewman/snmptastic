@@ -803,6 +803,11 @@ sub verifyConfiguration() {
         $errCount++;
     }
 
+    unless ( $config->{'notify-configuration-changes'} ) {
+        print qq($configErr No notification address set, check field "<notify-configuration-changes>" in $configFile\n);
+        $errCount++;
+    }
+
    print "Please fix $errCount Errors in Configuration File -- Daemon Halted\n\n" if $errCount > 0;
    exit 1 if $errCount > 0;
 }
