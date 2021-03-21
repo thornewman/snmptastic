@@ -4,7 +4,7 @@
 #
 # Usage:
 # ./cfglist           # Lists all configurations in tracking directory
-# ./cfglist foo       # Lists all configurations in tracking directory with name containin "foo"
+# ./cfglist foo       # Lists all configurations in tracking directory with name containing "foo"
 # ./cfglist foo /bar  # Lists all "foo" configuration in tracking directory "/bar"
 #
 #
