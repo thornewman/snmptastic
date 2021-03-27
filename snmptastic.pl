@@ -795,6 +795,11 @@ sub verifyConfiguration() {
         $config->{'logging'} = 1;    
     }
 
+    if ( ($config->{'revision_depth'} == 0) || !defined($config->{'revision_depth'}) ) {
+        print "Revision depth is undefined or 0 -- setting to 1\n";
+        $config->{'revision_depth'} = 1;
+    }
+
     if ( $LOGGING and !$config->{'logging'} ) {
 	print "$configErr Logging Enabled but no logfile specified in $configFile\n"; 
         $errCount++;
