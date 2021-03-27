@@ -15,6 +15,7 @@ $SIG{'TERM'} = \&catch_term;
 
 use POSIX qw(setsid);
 use strict;
+
 use File::Copy;
 use Net::SNMP;
 use Net::TFTP;
@@ -32,6 +33,10 @@ my $configFile = shift or die "Specify a valid XML Configuration file!\n";
 my $logFile;
 my $diffLog;
 my $tracking;
+my $VERBOSE;
+my $LOGGING;
+my $LOG_DIFFERENTIAL;
+my $numDevices;
 my $tftp;
 my $iteration	= 1;
 my $RUNNING	= 0;
@@ -47,36 +52,29 @@ my $config;
 ##################################################################################
 
 ## Load Configuration
-
 loadXMLConfig();
 
-## Setup Logging Logic from Configuration Settings
+## Set global variables
+setGlobals();
 
-my $VERBOSE = $config->{'logging_verbose'};
-$VERBOSE = 0 if $config->{'logging_verbose'} =~ m/false|no|0/i;
-my $LOG_DIFFERENTIAL = $config->{'log_differential'};
-$LOG_DIFFERENTIAL = 0 if $config->{'log_differential'} =~ m/false|no|0/i;
-my $LOGGING = $config->{'logging_enabled'};  
-$LOGGING = 0 if $config->{'logging_enabled'} =~ m/false|no|0/i;
-my $numDevices = keys %{$config->{'device'}};
-
+## Sanity Check Configuration
 verifyConfiguration();
 
-## Log
+## Log startup information
 logEvent("*** Started $0");
 print Dumper($config) if $VERBOSE;
 logEvent("Tracking Directory set to $tracking");
 logEvent("Differential Command set to $config->{'diff_command'}");
 logEvent("Configuration changes will be sent to $config->{'notification'}->{'notify-configuration-changes'}") if  $config->{'notification'}->{'notify-configuration-changes'};
-logEvent("Using Mail Template $config->{'notification'}->{'notify-template'}") if ( -e  $config->{'notification'}->{'notify-template'} );
+logEvent("Using Mail Template $config->{'notification'}->{'mail-template'}") if ( -e  $config->{'notification'}->{'mail-template'} );
 logEvent("Configuration changes will be logged to $diffLog") if ($config->{'log_differential'} and $diffLog);
 logEvent("Polling Frequency set to $config->{'iteration_frequency'} seconds");
+createDummyDevices() if $numDevices < 1;
 logEvent("There are no Devices defined to monitor") if $numDevices < 1;
 logEvent("Insufficient Devices Present -- Minimum of 2 Devices Required -- Halting Execution") if $numDevices < 1;
 exit 1 if $numDevices < 1;
 
-
-
+## Log all monitored devices
 logDevices();
 
 
@@ -617,7 +615,7 @@ sub sendDiffNotification() {
     my $diff = $_[2];
     
     ## Mail template file
-    my $template = $config->{'notification'}->{'notify-template'};
+    my $template = $config->{'notification'}->{'mail-template'};
     
     my $recipients = $config->{'notification'}->{'notify-configuration-changes'};
     my $from = $config->{'notification'}->{'notify-from-address'};
@@ -773,6 +771,13 @@ sub createStateFile() {
 sub loadXMLConfig() {
     $config = XMLin( $configFile,  ) or die "$!";
     print "Parsed Configuration File $configFile\n";
+}
+
+##
+## Set global variables
+##
+sub setGlobals() {
+
     $logFile = $config->{'logging'};
     $diffLog = $config->{'diff_log'};
     $tracking = $config->{'tracking'};
@@ -780,8 +785,16 @@ sub loadXMLConfig() {
     chomp($config->{'notification'}->{'notify-configuration-changes'});
     $config->{'notification'}->{'notify-configuration-changes'} =~ s/\n//g;
 
-}
+    ## Set Logging Globals from configuration
+    $VERBOSE = $config->{'logging_verbose'};
+    $VERBOSE = 0 if $config->{'logging_verbose'} =~ m/false|no|0/i;
+    $LOG_DIFFERENTIAL = $config->{'log_differential'};
+    $LOG_DIFFERENTIAL = 0 if $config->{'log_differential'} =~ m/false|no|0/i;
+    $LOGGING = $config->{'logging_enabled'};
+    $LOGGING = 0 if $config->{'logging_enabled'} =~ m/false|no|0/i;
+    $numDevices = keys %{$config->{'device'}};
 
+}
 
 ##
 ## Sanity Check Configuration
@@ -790,43 +803,55 @@ sub verifyConfiguration() {
     my $configErr = "ERROR -- ";
     my $errCount = 0;
 
+    ## Resolves logical contradiction of enabled verbose but disabled logging
     if ( $VERBOSE and !$LOGGING ) {
         print "Disabling Verbose Logging because regular logging is disabled in $configFile\n";
         $config->{'logging'} = 1;    
     }
 
+    ## Ensures Revision Depth is at least 1
     if ( ($config->{'revision_depth'} == 0) || !defined($config->{'revision_depth'}) ) {
-        print "Revision depth is undefined or 0 -- setting to 1\n";
+        print "Revision depth is blank or 0 -- setting to 1\n";
         $config->{'revision_depth'} = 1;
     }
 
+    ## Error if logging enabled with no log file specified
     if ( $LOGGING and !$config->{'logging'} ) {
 	print "$configErr Logging Enabled but no logfile specified in $configFile\n"; 
         $errCount++;
     }
 
-    unless ( $config->{'notification'}->{'notify-template'} ) {
+    ## Error if Differential loggign enabled but no log specified
+    if ( !defined($diffLog) || ref($diffLog) eq "HASH" ) {
+	print qq($configErr Diffential Logging enabled but no file specified -- check "<diff_log>" field in $configFile\n);
+	$errCount++;
+    }
+
+    ## Error if no mail template field found
+    unless ( $config->{'notification'}->{'mail-template'} ) {
         print "$configErr No Mail Template set in $configFile";
+        $errCount++;
     }
     
-    unless (-e  $config->{'notification'}->{'notify-template'}) {
-        print qq($configErr Configured Mail Template "$config->{'notification'}->{'notify-template'}" not found\n);
+    ## Error if Mail Template file not found
+    unless (-e  $config->{'notification'}->{'mail-template'}) {
+        print qq($configErr Configured Mail Template "$config->{'notification'}->{'mail-template'}" not found -- check "<mail-template>" field in $configFile\n);
         $errCount++;
     }   
 
+    ## Error if configured tracking directory not found
     unless ( -e $tracking ) {
-        print qq($configErr Configured Tracking Directory "$tracking" not found\n); 
+        print qq($configErr Configured Tracking Directory "$tracking" not found -- check "<tracking>" field in $configFile\n); 
         $errCount++;
     }
 
-    unless ( $config->{'notify-configuration-changes'} ) {
+    ## Error if no notification recipient specified
+    unless ( $config->{'notification'}->{'notify-configuration-changes'} ) {
+        print "Blah = $config->->{'notification'}->{'notify-configuration-changes'}\n";
         print qq($configErr No notification address set, check field "<notify-configuration-changes>" in $configFile\n);
         $errCount++;
     }
 
-    unless ( $config->{'revision_depth'} > 0 ) {
-        print qq($configErr Revision Depth is 0 or undefined, check field "<revision_depth>" in $configFile\n);
-    }
 
    print "Please fix $errCount Errors in Configuration File -- Daemon Halted\n\n" if $errCount > 0;
    exit 1 if $errCount > 0;
@@ -967,6 +992,20 @@ sub disableHpTFTPServer() {
     return 1;
 }
 
+##
+## Create Empty Devices if less than 2 devices configured for monitoring
+## (Data structures will not form correctly in this case)
+##
+sub createDummyDevices() {
+
+    if ($numDevices == 0) {
+        $config->{'device'}->{'name'} = "dummy2";
+        $config->{'device'}->{'name'} = "dummy";
+    }
+
+    $config->{'device'}->{'name'} = "dummy" if $numDevices == 1;
+
+}
 
 ##
 ## Daemonizes snmptastic.pl
@@ -992,8 +1031,8 @@ sub daemonize() {
 sub logEvent {
     my $message = $_[0];
     
-    return unless $config->{logging_enabled};
-    open OUT,">>$logFile" or die "Error Writing to log $logFile: $!";
+    return unless $config->{'logging_enabled'};
+    open OUT,">>$logFile" or die "Daemon Halted -- Error Writing to log $logFile: $!";
     printf OUT "%s %s\n",scalar localtime(),$message;
     close OUT;
 }
