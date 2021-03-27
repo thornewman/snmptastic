@@ -819,6 +819,9 @@ sub verifyConfiguration() {
         $errCount++;
     }
 
+    unless ( $config->{'revision_depth'} > 0 ) {
+        print qq($configErr Revision Depth is 0 or undefined, check field "<revision_depth>" in $configFile\n);
+    }
 
    print "Please fix $errCount Errors in Configuration File -- Daemon Halted\n\n" if $errCount > 0;
    exit 1 if $errCount > 0;
