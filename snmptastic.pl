@@ -46,11 +46,23 @@ my $config;
 ## MAIN BODY
 ##################################################################################
 
+## Load Configuration
+
 loadXMLConfig();
+
+## Setup Logging Logic from Configuration Settings
+
 my $VERBOSE = $config->{'logging_verbose'};
+$VERBOSE = 0 if $config->{'logging_verbose'} =~ m/false|no|0/i;
 my $LOG_DIFFERENTIAL = $config->{'log_differential'};
+$LOG_DIFFERENTIAL = 0 if $config->{'log_differential'} =~ m/false|no|0/i;
+my $LOGGING = $config->{'logging_enabled'};  
+$LOGGING = 0 if $config->{'logging_enabled'} =~ m/false|no|0/i;
 my $numDevices = keys %{$config->{'device'}};
 
+verifyConfiguration();
+
+## Log
 logEvent("*** Started $0");
 print Dumper($config) if $VERBOSE;
 logEvent("Tracking Directory set to $tracking");
@@ -768,7 +780,6 @@ sub loadXMLConfig() {
     chomp($config->{'notification'}->{'notify-configuration-changes'});
     $config->{'notification'}->{'notify-configuration-changes'} =~ s/\n//g;
 
-    verifyConfiguration();
 }
 
 
@@ -779,12 +790,12 @@ sub verifyConfiguration() {
     my $configErr = "ERROR -- ";
     my $errCount = 0;
 
-    if ( $config->{logging_verbose} and !$config->{'logging'} ) {
+    if ( $VERBOSE and !$LOGGING ) {
         print "Disabling Verbose Logging because regular logging is disabled in $configFile\n";
         $config->{'logging'} = 1;    
     }
 
-    if ( $config->{'logging_enabled'} and !$config->{'logging'} ) {
+    if ( $LOGGING and !$config->{'logging'} ) {
 	print "$configErr Logging Enabled but no logfile specified in $configFile\n"; 
         $errCount++;
     }
@@ -807,6 +818,7 @@ sub verifyConfiguration() {
         print qq($configErr No notification address set, check field "<notify-configuration-changes>" in $configFile\n);
         $errCount++;
     }
+
 
    print "Please fix $errCount Errors in Configuration File -- Daemon Halted\n\n" if $errCount > 0;
    exit 1 if $errCount > 0;
