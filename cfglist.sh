@@ -30,9 +30,9 @@ for f in $tracking/* ; do
         file=${f#*_}
         [[ $file =~ $pat ]]
         epoch=${BASH_REMATCH[1]}
-        if [[ "$OSTYPE" == "linux-gnu*" ]]; then
+        if [[ "$OSTYPE" == "linux-gnu*"* ]]; then
                 date=`date -d @${epoch%%.*} +"%a %d %b %Y %r"`
-        elif [[ "$OSTYPE" == "darwin*" ]]; then
+        elif [[ "$OSTYPE" == "darwin*"* ]]; then
                 date=`date -r @${epoch%%.*} +"%a %d %b %Y %r"`
         fi
         echo "$file ( $date )"
