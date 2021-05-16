@@ -26,15 +26,41 @@ acceptable. It was originally developed and deployed using vi, OpenBSD3.9, Perl
 This is an "old school" UNIX style service, written in perl and requiring UNIX 
 Supporting services to run. 
 
+************************************************************************************
+QUICK SETUP
+************************************************************************************
+
+1. Unwrap the tar file: 
+
+    tar zxvf snmptastic*.tar.gz
+
+2. Move to default directory: 
+
+    sudo mv snmptastic/ /opt
+
+3. Add to systemd: 
+
+    cp /opt/snmptastic/snmptastic.service /usr/lib/systemd/system
+    systemctl daemon-reload
+
+4. Configure /opt/snmptastic/snmptastic.conf:
+   - Configure "<notify-configuration-changes>" with where you want alerts to go
+   - Configure TFP Server Configuration section if monitoring Cisco devices
+   - Add Deviceis to monitor -- minimum of 2 required or service won't run
+     (that's what the "dummy" devices are for, remove them when you add 2 or more
+     real ones)
+
+5. Launch the service
+
+    systemctl start snmptastic
+
 
 ************************************************************************************
-SECURITY BEST PRACTICES
+BEST PRACTICES
 ************************************************************************************
 
-Run snmptastic on a secure internal host with limited access only to appropriate
-administrator.
-
-The default configuration, if followed, is reasonably secure:
+*   Run snmptastic on a secure internal host with limited access only to appropriate
+    administrator(s).
 
 *  The tracking directory where configurations are stored only allows access by the 
    owning user
@@ -48,12 +74,17 @@ The default configuration, if followed, is reasonably secure:
 *  The greatest security weakness is the plain-text SNMP v2 RW community string 
    required.  
 
-   SNMP configuration on the monitored network devices should be configured with
+*  SNMP configuration on the monitored network devices should be configured with
    Access lists so the RW configuration is only usable from the host that
    snmptastic runs on. 
 
-   The SNMP community string(s) used for snmptastic should be unique and not used 
+*  The SNMP community string(s) used for snmptastic should be unique and not used 
    elsewhere.
+
+*  A bug is that the datastructures will not form properly if only a single device
+   is monitored, this is why two empty "dummy" devices are in the default config
+   file. These are harmless and can be left in, or can be removed if you have at 
+   least 2 devices being monitored. Fixing this bug is more trouble then it's worth
 
 
 ************************************************************************************
@@ -131,6 +162,9 @@ snmptastic.service	A systemd configuration that can be used to register
 tracking/		An empty tracking directory which is the default for 
                          storing configurations and state files. This can be any 
                          directory, configured in snmptastic.conf
+
+cfglist.sh              Outputs configurations from tracking directory with human
+                         readable datestamps. Requires GNU date to work properly
 
 README			This file
 		
@@ -217,7 +251,9 @@ attempt to provide a simple, secure, and reliable tool for Network Configuration
 Tracking using SNMP and was first created specifically for Cisco devices. 
 
 Support for Foundry, HP, and then generic SCP to track UNIX or any other device
-Which allows SSH-key based file retrieval by SCP.
+which allows SSH-key based file retrieval by SCP was added later. It was used in
+production in large scale datacenters at multiple corporations well into the 2010s
+because it is simple, reliable, and provides a useful service in such environments.
 
 Questions/Comments/Feedback Welcome to thornewman@icloud.com.
 
