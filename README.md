@@ -5,8 +5,9 @@ INTRODUCTION
 ************************************************************************************
 
 snmptastic is a production environment systems administration service for 
-tracking network device configurations and logging and reporting configuration 
-changes.
+tracking network device and server configurations and logging and reporting 
+configuration changes. It is useful for tracking and alerting onconfiguration changes 
+across devices. 
 
 When properly configured, it will run as a forked UNIX daemon, periodically retrieve
 configuration files from configured devices, store them, and send email 
@@ -17,15 +18,12 @@ It provides:
 * Notifications whenever configuration changes occur
 
 It uses SNMP as well as standard UNIX tools such as "diff", "sendmail", and "scp" to 
-achieve this 
+achieve this. It is an "old school" style of UNIX service. 
 
 The requirements for snmptastic are minimal; most any stock UNIX host should be 
 acceptable. It was originally developed and deployed using vi, OpenBSD3.9, Perl
 5.8.6, and Google.
-
-This is an "old school" UNIX style service, written in perl and requiring UNIX 
-Supporting services to run. 
-
+ 
 
 ************************************************************************************
 SECURITY BEST PRACTICES
