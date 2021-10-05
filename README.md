@@ -66,9 +66,9 @@ A UNIX host which has:
   This TFTP server must be configured to 'create' files rather than requiring empty 
   files to be available. 
 
-  This is typically done in /etc/inetd.conf as follows:
-  tftp dgram udp wait root /usr/libexec/tftpd tftpd -cs /tftpboot
-
+  This is typically done in **/etc/inetd.conf** as follows:
+  tftp dgram udp wait root **/usr/libexec/tftpd tftpd -cs /tftpboot**
+  
   IT IS VERY IMPORTANT THIS BE DONE OR CONFIGURATION RETRIEVAL BY TFTP WILL FAIL
 
 * UNIX "diff" or equivalent tool be available. 
