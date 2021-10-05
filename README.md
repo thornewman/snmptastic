@@ -10,7 +10,7 @@ configuration changes. It is useful for tracking and alerting on configuration c
 across devices. 
 
 When properly configured, it will run as a forked UNIX daemon, periodically retrieve
-configuration files from configured devices, store them, and send email 
+configuration files from configured devices, store them, log and send email 
 notifications of differences in configurations over time.
 
 It provides:
