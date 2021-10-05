@@ -112,7 +112,7 @@ PACKAGE INSTALLATION FILES
 The installation tarball contains these files extracted into snmptastic/
 
 snmptastic.pl		The executable. Will self daemonize. Terminate by sending 
-                          it a kill signal. 
+                        it a kill signal. 
 
 snmptastic.conf		Stock configuration file. It is self documented.
 
