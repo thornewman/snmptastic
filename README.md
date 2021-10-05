@@ -6,7 +6,7 @@ INTRODUCTION
 
 snmptastic is a production environment systems administration service for 
 tracking network device and server configurations and logging and reporting 
-configuration changes. It is useful for tracking and alerting onconfiguration changes 
+configuration changes. It is useful for tracking and alerting on configuration changes 
 across devices. 
 
 When properly configured, it will run as a forked UNIX daemon, periodically retrieve
