@@ -44,9 +44,9 @@ The default configuration, if followed, is reasonably secure:
    Information like plain text passwords
 
 *  The greatest security weakness is the plain-text SNMP v2 RW community string 
-   required.  
+   required by some device types
 
-   SNMP configuration on the monitored network devices should be configured with
+   SNMP configuration on such monitored network devices should be configured with
    Access lists so the RW configuration is only usable from the host that
    snmptastic runs on. 
 
