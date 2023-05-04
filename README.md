@@ -188,6 +188,7 @@ STARTING AND STOPPING
   configuration file as the only command-line parameter.
   
   Example: ./snmptastic.pl snmptastic.conf
+  
   Example: /opt/snmptastic.pl /opt/snmptastic/snmptastic.conf
 
   The program will launch and self-daemonize, logging to the log file specified in 
