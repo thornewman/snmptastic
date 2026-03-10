@@ -15,6 +15,7 @@ $SIG{'TERM'} = \&catch_term;
 
 use POSIX qw(setsid);
 use strict;
+use Cwd 'abs_path';
 
 use File::Copy;
 use Net::SNMP;
@@ -69,10 +70,11 @@ logEvent("Configuration changes will be sent to $config->{'notification'}->{'not
 logEvent("Using Mail Template $config->{'notification'}->{'mail-template'}") if ( -e  $config->{'notification'}->{'mail-template'} );
 logEvent("Configuration changes will be logged to $diffLog") if ($config->{'log_differential'} and $diffLog);
 logEvent("Polling Frequency set to $config->{'iteration_frequency'} seconds");
-createDummyDevices() if $numDevices < 1;
-logEvent("There are no Devices defined to monitor") if $numDevices < 1;
-logEvent("Insufficient Devices Present -- Minimum of 2 Devices Required -- Halting Execution") if $numDevices < 1;
-exit 1 if $numDevices < 1;
+if ( $numDevices < 1 ) {
+    logEvent("There are no Devices defined to monitor");
+    logEvent("Insufficient Devices Present -- Minimum of 1 Device Required -- Halting Execution");
+    exit 1;
+}
 
 ## Log all monitored devices
 logDevices();
@@ -82,8 +84,11 @@ logDevices();
 ## Main Loop
 ##
 
+logEvent("Preparing to daemonize");
 daemonize();
+logEvent("Daemonization routine finished, back in main body");
 logEvent("Entering Main Loop");
+$RUNNING = 1;
 while ( $RUNNING ) {
     logEvent("*** $0 Starting Iteration $iteration") if $VERBOSE;
     iterateDevices();
@@ -769,7 +774,7 @@ sub createStateFile() {
 ## Load XML configuration file
 ##
 sub loadXMLConfig() {
-    $config = XMLin( $configFile,  ) or die "$!";
+    $config = XMLin( $configFile, ForceArray => ['device'], KeyAttr => {'device' => 'name'} ) or die "$!";
     print "Parsed Configuration File $configFile\n";
 }
 
@@ -778,9 +783,14 @@ sub loadXMLConfig() {
 ##
 sub setGlobals() {
 
-    $logFile = $config->{'logging'};
-    $diffLog = $config->{'diff_log'};
-    $tracking = $config->{'tracking'};
+    $logFile = abs_path($config->{'logging'}) || $config->{'logging'};
+    $diffLog = abs_path($config->{'diff_log'}) || $config->{'diff_log'};
+    $tracking = abs_path($config->{'tracking'}) || $config->{'tracking'};
+    
+    if ( $config->{'notification'}->{'mail-template'} ) {
+        $config->{'notification'}->{'mail-template'} = abs_path($config->{'notification'}->{'mail-template'}) || $config->{'notification'}->{'mail-template'};
+    }
+    
     $tftp = $config->{'tftp'}->{'address'};
     chomp($config->{'notification'}->{'notify-configuration-changes'});
     $config->{'notification'}->{'notify-configuration-changes'} =~ s/\n//g;
@@ -992,20 +1002,6 @@ sub disableHpTFTPServer() {
     return 1;
 }
 
-##
-## Create Empty Devices if less than 2 devices configured for monitoring
-## (Data structures will not form correctly in this case)
-##
-sub createDummyDevices() {
-
-    if ($numDevices == 0) {
-        $config->{'device'}->{'name'} = "dummy2";
-        $config->{'device'}->{'name'} = "dummy";
-    }
-
-    $config->{'device'}->{'name'} = "dummy" if $numDevices == 1;
-
-}
 
 ##
 ## Daemonizes snmptastic.pl
