@@ -1,4 +1,4 @@
-# SNMPTASTIC 1.9
+# SNMPTASTIC 1.95
 
 ************************************************************************************
 INTRODUCTION
@@ -116,21 +116,21 @@ snmptastic.pl		The executable. Will self daemonize. Terminate by sending
 
 snmptastic.conf		Stock configuration file. It is self documented.
 
-mibs.tar.gz		An archive of SNMP MIBS used by the script. Usually isn't 
-                         needed to be installed.
+mibs.tar.gz			An archive of SNMP MIBS used by the script. Usually isn't 
+					needed to be installed.
 
-mail.template		A template file used to create automatic email  
-                         notifications, can be modified as desired
+mail.template		A template file used to create automatic email 
+					notifications, can be modified as desired
 
 snmptastic.service	A systemd configuration that can be used to register 
-                         snmptastic. Assumes installation to /opt/snmptastic, modify 
-                         appropriately	
+					snmptastic. Assumes installation to /opt/snmptastic, modify 
+					appropriately	
 
-tracking/		An empty tracking directory which is the default for 
-                         storing configurations and state files. This can be any 
-                         directory, configured in snmptastic.conf
+tracking/			An empty tracking directory which is the default for 
+					storing configurations and state files. This can be any 
+					directory, configured in snmptastic.conf
 
-README			This file
+README				This file
 		
 
 ************************************************************************************
