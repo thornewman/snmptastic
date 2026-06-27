@@ -5,7 +5,7 @@
 # SNMP & SCP Based Network Monitor Tool
 # Originally written in September, 2006 by Thor Newman
 #
-# VERSION 1.9
+# VERSION 1.95
 #
 ##################################################################################
 
